@@ -53,9 +53,21 @@ try {
     res.json(data);
 }
 catch {
-    res.status(500).json({
-        error: "Invalid JSON returned by Gemini"
+    if (error.status === 429) {
+    return res.status(429).json({
+        error: "Quota exceeded. Try again later."
     });
+}
+
+if (error.status === 503) {
+    return res.status(503).json({
+        error: "Gemini servers are busy. Please retry."
+    });
+}
+
+res.status(500).json({
+    error: error.message
+});
 }
 
     } catch (error) {
