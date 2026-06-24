@@ -6,6 +6,7 @@ function App() {
   const [company, setCompany] = useState("");
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [history, setHistory] = useState([]);
 
   const handleAnalyze = async () => {
     try {
@@ -18,7 +19,18 @@ function App() {
         }
       );
 
-setResult(response.data);
+      setResult(response.data);
+
+      setHistory((prevHistory) => {
+
+  const filteredHistory = prevHistory.filter(
+    (item) => item.toLowerCase() !== company.toLowerCase()
+  );
+
+  return [company, ...filteredHistory];
+
+});
+
     } catch (error) {
       console.log(error);
     } finally {
@@ -27,21 +39,20 @@ setResult(response.data);
   };
 
   const getDecisionClass = () => {
+    if (!result) return "";
 
-  if (!result) return "";
+    const decision = result.final_decision.toLowerCase();
 
-  const decision = result.final_decision.toLowerCase();
+    if (decision.includes("invest")) {
+      return "invest";
+    }
 
-  if (decision.includes("invest")) {
-    return "invest";
-  }
+    if (decision.includes("hold")) {
+      return "hold";
+    }
 
-  if (decision.includes("hold")) {
-    return "hold";
-  }
-
-  return "avoid";
-};
+    return "avoid";
+  };
 
   return (
     <div className="container">
@@ -61,6 +72,18 @@ setResult(response.data);
       </div>
 
       {loading && <p className="loading">Analyzing...</p>}
+
+      {history.length > 0 && (
+        <div className="card">
+          <h2>Recent Searches</h2>
+
+          <ul>
+            {history.map((item, index) => (
+              <li key={index}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {result && (
         <div className="card">
@@ -82,9 +105,9 @@ setResult(response.data);
           </ul>
 
           <h2>Final Decision</h2>
-<p className={getDecisionClass()}>
-  {result.final_decision}
-</p>
+          <p className={getDecisionClass()}>
+            {result.final_decision}
+          </p>
 
           <h2>Confidence</h2>
           <p>{result.confidence}% Confidence</p>
