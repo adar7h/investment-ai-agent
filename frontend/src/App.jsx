@@ -1,98 +1,98 @@
 import { useState } from "react";
 import axios from "axios";
+import "./App.css";
 
 function App() {
-
   const [company, setCompany] = useState("");
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const handleAnalyze = async () => {
-
     try {
-
       setLoading(true);
 
       const response = await axios.post(
         "http://localhost:5000/analyze",
         {
-          company: company
+          company: company,
         }
       );
 
-      setResult(response.data);
-
+setResult(response.data);
     } catch (error) {
-
       console.log(error);
-
     } finally {
-
       setLoading(false);
-
     }
   };
 
+  const getDecisionClass = () => {
+
+  if (!result) return "";
+
+  const decision = result.final_decision.toLowerCase();
+
+  if (decision.includes("invest")) {
+    return "invest";
+  }
+
+  if (decision.includes("hold")) {
+    return "hold";
+  }
+
+  return "avoid";
+};
+
   return (
-    <div>
+    <div className="container">
+      <h1 className="title">AI Investment Research Agent</h1>
 
-      <h1>AI Investment Research Agent</h1>
+      <div className="search-box">
+        <input
+          type="text"
+          placeholder="Enter company name"
+          value={company}
+          onChange={(event) => setCompany(event.target.value)}
+        />
 
-      <input
-        type="text"
-        placeholder="Enter company name"
-        value={company}
-        onChange={(event) => setCompany(event.target.value)}
-      />
+        <button onClick={handleAnalyze}>
+          Analyze
+        </button>
+      </div>
 
-      <button onClick={handleAnalyze}>
-        Analyze
-      </button>
+      {loading && <p className="loading">Analyzing...</p>}
 
-      {
-        loading && <p>Analyzing...</p>
-      }
+      {result && (
+        <div className="card">
+          <h2>Summary</h2>
+          <p>{result.summary}</p>
 
-      <p>Company: {company}</p>
+          <h2>Strengths</h2>
+          <ul>
+            {result.strengths.map((strength, index) => (
+              <li key={index}>{strength}</li>
+            ))}
+          </ul>
 
-      {
-        result && (
-          <div>
+          <h2>Risks</h2>
+          <ul>
+            {result.risks.map((risk, index) => (
+              <li key={index}>{risk}</li>
+            ))}
+          </ul>
 
-            <h2>Summary</h2>
-            <p>{result.summary}</p>
+          <h2>Final Decision</h2>
+<p className={getDecisionClass()}>
+  {result.final_decision}
+</p>
 
-            <h2>Strengths</h2>
-            <ul>
-              {
-                result.strengths.map((strength, index) => (
-                  <li key={index}>{strength}</li>
-                ))
-              }
-            </ul>
+          <h2>Confidence</h2>
+          <p>{result.confidence}% Confidence</p>
 
-            <h2>Risks</h2>
-            <ul>
-              {
-                result.risks.map((risk, index) => (
-                  <li key={index}>{risk}</li>
-                ))
-              }
-            </ul>
-
-            <h2>Final Decision</h2>
-            <p>{result.final_decision}</p>
-
-            <h2>Confidence</h2>
-            <p>{result.confidence}</p>
-
-            <h2>Reason</h2>
-            <p>{result.reason}</p>
-
-          </div>
-        )
-      }
-
+          <h2>Reason</h2>
+          <p>{result.reason}</p>
+        </div>
+      )}
     </div>
   );
 }

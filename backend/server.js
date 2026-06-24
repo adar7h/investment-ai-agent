@@ -52,22 +52,12 @@ try {
     const data = JSON.parse(cleanedResponse);
     res.json(data);
 }
-catch {
-    if (error.status === 429) {
-    return res.status(429).json({
-        error: "Quota exceeded. Try again later."
-    });
-}
+catch (error) {
+    console.log(error);
 
-if (error.status === 503) {
-    return res.status(503).json({
-        error: "Gemini servers are busy. Please retry."
+    res.status(500).json({
+        error: "Invalid JSON returned by Gemini"
     });
-}
-
-res.status(500).json({
-    error: error.message
-});
 }
 
     } catch (error) {
