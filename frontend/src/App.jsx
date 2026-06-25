@@ -9,30 +9,33 @@ function App() {
   const [history, setHistory] = useState([]);
 
   const handleAnalyze = async () => {
+    if (!company.trim()) {
+      alert("Please enter a company name.");
+      return;
+    }
+
     try {
       setLoading(true);
 
       const response = await axios.post(
         "https://investment-ai-agent.onrender.com/analyze",
         {
-          company: company,
+          company,
         }
       );
 
       setResult(response.data);
 
       setHistory((prevHistory) => {
+        const filteredHistory = prevHistory.filter(
+          (item) => item.toLowerCase() !== company.toLowerCase()
+        );
 
-  const filteredHistory = prevHistory.filter(
-    (item) => item.toLowerCase() !== company.toLowerCase()
-  );
-
-  return [company, ...filteredHistory];
-
-});
-
+        return [company, ...filteredHistory];
+      });
     } catch (error) {
       console.log(error);
+      alert("Unable to analyze company. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -43,79 +46,156 @@ function App() {
 
     const decision = result.final_decision.toLowerCase();
 
-    if (decision.includes("invest")) {
-      return "invest";
-    }
-
-    if (decision.includes("hold")) {
-      return "hold";
-    }
+    if (decision.includes("invest")) return "invest";
+    if (decision.includes("hold")) return "hold";
 
     return "avoid";
   };
 
   return (
     <div className="container">
-      <h1 className="title">AI Investment Research Agent</h1>
 
-      <div className="search-box">
-        <input
-          type="text"
-          placeholder="Enter company name"
-          value={company}
-          onChange={(event) => setCompany(event.target.value)}
-        />
+      <div className="hero">
 
-        <button onClick={handleAnalyze}>
-          Analyze
-        </button>
+        <h1> AI Investment Research Agent</h1>
+
+        <p>
+          Powered by <span>React</span> • <span>LangChain</span> •{" "}
+          <span>Gemini</span>
+        </p>
+
       </div>
 
-      {loading && <p className="loading">Analyzing...</p>}
+      <div className="search-box">
+
+        <input
+          type="text"
+          placeholder="Search a company (Apple, Tesla, Meta...)"
+          value={company}
+          onChange={(e) => setCompany(e.target.value)}
+        />
+
+        <button
+          onClick={handleAnalyze}
+          disabled={loading}
+        >
+          {loading ? "Analyzing..." : "Analyze"}
+        </button>
+
+      </div>
 
       {history.length > 0 && (
-        <div className="card">
-          <h2>Recent Searches</h2>
 
-          <ul>
+        <div className="history-card">
+
+          <h3>Recent Searches</h3>
+
+          <div className="chips">
+
             {history.map((item, index) => (
-              <li key={index}>{item}</li>
+
+              <span
+                className="chip"
+                key={index}
+                onClick={() => setCompany(item)}
+              >
+                {item}
+              </span>
+
             ))}
-          </ul>
+
+          </div>
+
         </div>
+
+      )}
+
+      {loading && (
+
+        <div className="loading-card">
+
+          <div className="loader"></div>
+
+          <p>Analyzing investment opportunity...</p>
+
+        </div>
+
       )}
 
       {result && (
-        <div className="card">
-          <h2>Summary</h2>
-          <p>{result.summary}</p>
 
-          <h2>Strengths</h2>
-          <ul>
-            {result.strengths.map((strength, index) => (
-              <li key={index}>{strength}</li>
-            ))}
-          </ul>
+        <>
 
-          <h2>Risks</h2>
-          <ul>
-            {result.risks.map((risk, index) => (
-              <li key={index}>{risk}</li>
-            ))}
-          </ul>
+          <div className="card">
 
-          <h2>Final Decision</h2>
-          <p className={getDecisionClass()}>
-            {result.final_decision}
-          </p>
+            <h2>📊 Summary</h2>
 
-          <h2>Confidence</h2>
-          <p>{result.confidence}% Confidence</p>
+            <p>{result.summary}</p>
 
-          <h2>Reason</h2>
-          <p>{result.reason}</p>
-        </div>
+          </div>
+
+          <div className="grid">
+
+            <div className="card">
+
+              <h2>💪 Strengths</h2>
+
+              <ul>
+
+                {result.strengths.map((strength, index) => (
+
+                  <li key={index}>{strength}</li>
+
+                ))}
+
+              </ul>
+
+            </div>
+
+            <div className="card">
+
+              <h2>⚠️ Risks</h2>
+
+              <ul>
+
+                {result.risks.map((risk, index) => (
+
+                  <li key={index}>{risk}</li>
+
+                ))}
+
+              </ul>
+
+            </div>
+
+          </div>
+
+          <div className="card">
+
+            <h2>📈 Investment Decision</h2>
+
+            <div className={getDecisionClass()}>
+              {result.final_decision}
+            </div>
+
+            <div className="confidence">
+
+              Confidence Score
+
+              <strong>{result.confidence}%</strong>
+
+            </div>
+
+            <h3>Reason</h3>
+
+            <p>{result.reason}</p>
+
+          </div>
+
+        </>
+
       )}
+
     </div>
   );
 }
