@@ -13,7 +13,7 @@ function App() {
       setLoading(true);
 
       const response = await axios.post(
-        "http://localhost:5000/analyze",
+        "https://investment-ai-agent.onrender.com/analyze",
         {
           company: company,
         }
